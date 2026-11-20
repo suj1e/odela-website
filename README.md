@@ -1,28 +1,31 @@
 # odela-website
 
-Static product site for **odela**: landing, download, docs, changelog, license and privacy.
+Static product site for **odela**, a local-first multi-agent workspace: landing, download, docs, changelog, license and privacy.
 
 ## Stack
 
 - Astro + Starlight
-- Bun for install/build
+- npm for install/build
 - GitHub Pages, custom domain `odela.beer`
 - Pagefind search; no backend
 
 ## Status
 
-Repository initialized. Site skeleton not scaffolded yet.
+S0 scaffold: landing, Chinese/English docs, download placeholder, Pages workflow.
 
-## Planned commands
+## Commands
+
+Node.js >= 22.23.4 is required. The repo pins it in `.mise.toml`.
 
 ```bash
-bun install
-bun run dev
-bun run build
-bun run check
+mise install
+npm ci
+npm run dev
+npm run build
+npm run check
 ```
 
-When the site is scaffolded, these become the repo's own commands; the private product repo does not call them.
+The private product repo does not call these.
 
 ## Boundaries
 
@@ -34,11 +37,16 @@ When the site is scaffolded, these become the repo's own commands; the private p
 
 - `/` — 中文首页
 - `/en/` — English landing
-- `/download`
-- `/docs`, `/docs/en`
+- `/download`, `/en/download`
+- `/docs`, `/docs/getting-started`
+- `/en/docs`, `/en/docs/getting-started`
 - `/changelog`
 - `/license`
 - `/privacy`
+
+`/changelog`, `/license` and `/privacy` are next; S0 only ships landing, docs and download placeholder.
+
+<!-- Starlight serves English docs under `/en/docs`; the locale prefix comes before the docs directory. -->
 
 ## License
 

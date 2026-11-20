@@ -1,0 +1,37 @@
+---
+import '../../styles/landing.css';
+const text = {
+  title: 'Download odela',
+  lead: '0.1.0 is not released yet. Unsigned macOS, Windows and Linux builds will appear here.',
+  warning: 'Unsigned builds: macOS may require allowing the app in Privacy & Security; Windows may show SmartScreen.',
+  releases: 'Open odela-releases',
+  docs: 'Read the docs',
+};
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Download odela</title>
+    <meta name="description" content={text.lead} />
+    <link rel="icon" href="/icon.png" />
+  </head>
+  <body>
+    <header class="site-head">
+      <a class="brand" href="/en/"><img src="/icon.png" alt="" width="28" height="28" /><span>odela</span></a>
+      <nav><a href="/en/docs">Docs</a><a href="/download">中文</a></nav>
+    </header>
+    <main class="simple">
+      <p class="tag">release</p>
+      <h1>{text.title}</h1>
+      <p class="lead">{text.lead}</p>
+      <p class="note">{text.warning}</p>
+      <div class="actions">
+        <a class="button primary" href="https://github.com/suj1e/odela-releases">{text.releases}</a>
+        <a class="button" href="/en/docs">{text.docs}</a>
+      </div>
+    </main>
+    <footer><span>odela</span><a href="https://github.com/suj1e/odela-releases">GitHub Releases</a></footer>
+  </body>
+</html>

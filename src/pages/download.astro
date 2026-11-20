@@ -1,0 +1,37 @@
+---
+import '../styles/landing.css';
+const text = {
+  title: '下载 odela',
+  lead: '0.1.0 尚未发布。发布后会在这里给出 macOS、Windows、Linux 的未签名安装包。',
+  warning: '未签名版本：macOS 可能需要在“隐私与安全性”中允许打开；Windows 可能出现 SmartScreen 提示。',
+  releases: '查看 odela-releases',
+  docs: '先读文档',
+};
+---
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>下载 odela</title>
+    <meta name="description" content={text.lead} />
+    <link rel="icon" href="/icon.png" />
+  </head>
+  <body>
+    <header class="site-head">
+      <a class="brand" href="/"><img src="/icon.png" alt="" width="28" height="28" /><span>odela</span></a>
+      <nav><a href="/docs">文档</a><a href="/en/download">EN</a></nav>
+    </header>
+    <main class="simple">
+      <p class="tag">release</p>
+      <h1>{text.title}</h1>
+      <p class="lead">{text.lead}</p>
+      <p class="note">{text.warning}</p>
+      <div class="actions">
+        <a class="button primary" href="https://github.com/suj1e/odela-releases">{text.releases}</a>
+        <a class="button" href="/docs">{text.docs}</a>
+      </div>
+    </main>
+    <footer><span>odela</span><a href="https://github.com/suj1e/odela-releases">GitHub Releases</a></footer>
+  </body>
+</html>
