@@ -1,0 +1,50 @@
+---
+interface Props {
+  lang: 'zh' | 'en';
+}
+const { lang } = Astro.props;
+const zh = lang === 'zh';
+---
+<label class="theme-select">
+  <span class="sr-only">{zh ? '选择主题' : 'Select theme'}</span>
+  <select data-theme-select aria-label={zh ? '选择主题' : 'Select theme'}>
+    <option value="dark">{zh ? '深色' : 'Dark'}</option>
+    <option value="light">{zh ? '浅色' : 'Light'}</option>
+    <option value="auto">{zh ? '自动' : 'Auto'}</option>
+  </select>
+</label>
+
+<script is:inline>
+  (() => {
+    const storageKey = 'starlight-theme';
+    const parseTheme = (value) =>
+      value === 'light' || value === 'dark' ? value : 'auto';
+    const preferredTheme = () =>
+      matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+
+    const applyTheme = (theme) => {
+      document.documentElement.dataset.theme =
+        theme === 'auto' ? preferredTheme() : theme;
+      document.querySelectorAll('[data-theme-select]').forEach((select) => {
+        select.value = theme;
+      });
+      try {
+        localStorage.setItem(storageKey, theme === 'auto' ? '' : theme);
+      } catch {}
+    };
+
+    const selects = document.querySelectorAll('[data-theme-select]');
+    selects.forEach((select) => {
+      select.value = parseTheme(localStorage.getItem(storageKey));
+      select.addEventListener('change', () => {
+        applyTheme(parseTheme(select.value));
+      });
+    });
+
+    matchMedia('(prefers-color-scheme: light)').addEventListener('change', () => {
+      if (parseTheme(localStorage.getItem(storageKey)) === 'auto') {
+        applyTheme('auto');
+      }
+    });
+  })();
+</script>

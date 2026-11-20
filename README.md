@@ -11,7 +11,7 @@ Static product site for **odela**, a local-first multi-agent workspace: landing,
 
 ## Status
 
-S0 scaffold: landing, Chinese/English docs, download placeholder, Pages workflow.
+S0 scaffold: landing, Chinese/English docs, download placeholder, three-state theme switcher, Pages workflow.
 
 ## Commands
 

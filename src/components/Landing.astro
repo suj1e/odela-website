@@ -1,5 +1,7 @@
 ---
 import '../styles/landing.css';
+import ThemeHead from './ThemeHead.astro';
+import ThemeSelect from './ThemeSelect.astro';
 interface Props {
   lang: 'zh' | 'en';
 }
@@ -43,6 +45,7 @@ const text = zh
     <title>odela</title>
     <meta name="description" content={text.lead} />
     <link rel="icon" href="/icon.png" />
+    <ThemeHead />
   </head>
   <body>
     <header class="site-head">
@@ -52,7 +55,8 @@ const text = zh
       </a>
       <nav>
         <a href={zh ? '/docs' : '/en/docs'}>{text.docs}</a>
-        <a href={zh ? '/download' : '/en/download'}>{text.download}</a>
+        <a class="nav-download" href={zh ? '/download' : '/en/download'}>{text.download}</a>
+        <ThemeSelect lang={lang} />
         <a href={zh ? '/en/' : '/'}>{zh ? 'EN' : '中文'}</a>
       </nav>
     </header>

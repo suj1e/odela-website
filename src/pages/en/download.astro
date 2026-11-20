@@ -1,5 +1,7 @@
 ---
 import '../../styles/landing.css';
+import ThemeHead from '../../components/ThemeHead.astro';
+import ThemeSelect from '../../components/ThemeSelect.astro';
 const text = {
   title: 'Download odela',
   lead: '0.1.0 is not released yet. Unsigned macOS, Windows and Linux builds will appear here.',
@@ -16,11 +18,12 @@ const text = {
     <title>Download odela</title>
     <meta name="description" content={text.lead} />
     <link rel="icon" href="/icon.png" />
+    <ThemeHead />
   </head>
   <body>
     <header class="site-head">
       <a class="brand" href="/en/"><img src="/icon.png" alt="" width="28" height="28" /><span>odela</span></a>
-      <nav><a href="/en/docs">Docs</a><a href="/download">中文</a></nav>
+      <nav><a href="/en/docs">Docs</a><ThemeSelect lang="en" /><a href="/download">中文</a></nav>
     </header>
     <main class="simple">
       <p class="tag">release</p>

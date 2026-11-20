@@ -1,0 +1,16 @@
+---
+// Avoid a flash of the wrong theme before the page paints.
+---
+<script is:inline>
+  (() => {
+    const storageKey = 'starlight-theme';
+    const stored = localStorage.getItem(storageKey);
+    const theme =
+      stored === 'light' || stored === 'dark'
+        ? stored
+        : matchMedia('(prefers-color-scheme: light)').matches
+          ? 'light'
+          : 'dark';
+    document.documentElement.dataset.theme = theme;
+  })();
+</script>
