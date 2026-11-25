@@ -1,0 +1,23 @@
+---
+// The mark is drawn twice: the raster icon (tile + black body) and an SVG
+// overlay that repaints both eyes and their pupils. Pupil geometry comes from
+// icon.png (1254x1254) so the overlay sits pixel-exact on top of the raster.
+interface Props {
+  class?: string;
+}
+
+const { class: className } = Astro.props;
+---
+<span class:list={['eye-mark', className]} data-eye-mark>
+  <img src="/icon.png" alt="" width="1254" height="1254" decoding="async" />
+  <svg viewBox="0 0 1254 1254" aria-hidden="true" focusable="false">
+    <g data-eye data-cx="666.65" data-cy="673.66">
+      <ellipse cx="666.65" cy="673.66" rx="74" ry="75.98" transform="rotate(238.91 666.65 673.66)" fill="#fdfdfd"></ellipse>
+      <circle data-pupil cx="713.5" cy="644.64" r="34.44" fill="#060606"></circle>
+    </g>
+    <g data-eye data-cx="491.72" data-cy="710.35">
+      <ellipse cx="491.72" cy="710.35" rx="78.24" ry="77.05" transform="rotate(149.34 491.72 710.35)" fill="#fdfdfd"></ellipse>
+      <circle data-pupil cx="540.85" cy="680.61" r="35.55" fill="#060606"></circle>
+    </g>
+  </svg>
+</span>

@@ -1,5 +1,6 @@
 ---
 import '../../styles/landing.css';
+import Mark from '../../components/Mark.astro';
 import ThemeHead from '../../components/ThemeHead.astro';
 import ThemeSelect from '../../components/ThemeSelect.astro';
 const text = {
@@ -22,7 +23,7 @@ const text = {
   </head>
   <body>
     <header class="site-head">
-      <a class="brand" href="/en/"><img src="/icon.png" alt="" width="28" height="28" /><span>odela</span></a>
+      <a class="brand" href="/en/"><Mark class="brand-mark" /><span>odela</span></a>
       <nav><a href="/en/docs">Docs</a><ThemeSelect lang="en" /><a href="/download">中文</a></nav>
     </header>
     <main class="simple">
@@ -36,5 +37,9 @@ const text = {
       </div>
     </main>
     <footer><span>odela</span><a href="https://github.com/suj1e/odela-releases">GitHub Releases</a></footer>
+    <script>
+      import { initEyeMarks } from '../../scripts/eyes';
+      initEyeMarks();
+    </script>
   </body>
 </html>

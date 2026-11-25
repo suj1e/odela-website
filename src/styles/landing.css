@@ -31,7 +31,11 @@ a { color: inherit; }
   display: flex; align-items: center; justify-content: space-between;
 }
 .brand { display: inline-flex; align-items: center; gap: 10px; font-weight: 650; text-decoration: none; letter-spacing: -.02em; }
-.brand img { border-radius: 7px; }
+.brand .eye-mark { border-radius: 7px; }
+.eye-mark { position: relative; display: inline-block; line-height: 0; }
+.eye-mark > img { display: block; width: 100%; height: auto; }
+.eye-mark > svg { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.brand-mark { width: 28px; height: 28px; }
 nav { display: flex; align-items: center; gap: 20px; font-size: 14px; color: var(--muted); }
 nav a { text-decoration: none; }
 nav a:hover { color: var(--fg); }
@@ -63,7 +67,7 @@ h1 { margin: 14px 0 20px; font-size: clamp(40px, 7vw, 78px); line-height: 1.04; 
 .button.primary { background: var(--fg); color: var(--bg); border-color: var(--fg); }
 .button:hover { border-color: var(--fg); }
 .mark { display: flex; justify-content: center; }
-.mark img { width: clamp(240px, 30vw, 360px); height: auto; filter: grayscale(1); }
+.mark .eye-mark { width: clamp(240px, 30vw, 360px); }
 .features { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: 8vh; }
 .features article { border-top: 1px solid var(--line); padding-top: 16px; }
 .features h2 { margin: 0 0 8px; font-size: 15px; font-weight: 600; }
@@ -76,7 +80,7 @@ footer a { text-decoration: none; }
 @media (max-width: 900px) {
   .hero { grid-template-columns: 1fr; }
   .mark { margin-top: 40px; }
-  .mark img { width: clamp(220px, 52vw, 320px); }
+  .mark .eye-mark { width: clamp(220px, 52vw, 320px); }
 }
 @media (max-width: 600px) {
   .nav-download { display: none; }

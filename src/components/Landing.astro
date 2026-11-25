@@ -1,5 +1,6 @@
 ---
 import '../styles/landing.css';
+import Mark from './Mark.astro';
 import ThemeHead from './ThemeHead.astro';
 import ThemeSelect from './ThemeSelect.astro';
 interface Props {
@@ -50,7 +51,7 @@ const text = zh
   <body>
     <header class="site-head">
       <a class="brand" href={zh ? '/' : '/en/'}>
-        <img src="/icon.png" alt="" width="28" height="28" />
+        <Mark class="brand-mark" />
         <span>odela</span>
       </a>
       <nav>
@@ -73,7 +74,7 @@ const text = zh
           </div>
         </div>
         <div class="mark" aria-hidden="true">
-          <img src="/icon.png" alt="" />
+          <Mark class="hero-mark" />
         </div>
       </section>
 
@@ -93,5 +94,9 @@ const text = zh
       <span>odela</span>
       <a href="https://github.com/suj1e/odela-releases">GitHub Releases</a>
     </footer>
+    <script>
+      import { initEyeMarks } from '../scripts/eyes';
+      initEyeMarks();
+    </script>
   </body>
 </html>
