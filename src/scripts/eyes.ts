@@ -1,6 +1,12 @@
-// Pupils follow the pointer. Coordinates live in the icon's 1254-unit space so
-// the same numbers work at every rendered size (header 28px, hero ~360px).
+// Pupils follow the pointer, both eyes blink on their own, and the pupils
+// drift back to rest once the pointer has been still. Coordinates live in the
+// icon's 1254-unit space so the same numbers work at every rendered size
+// (header 28px, hero ~360px).
 const VIEWBOX = 1254;
+const BLINK_MS = 120;
+const BLINK_MIN = 4000;
+const BLINK_MAX = 9000;
+const IDLE_MS = 2500;
 
 type Eye = {
   mark: HTMLElement;
@@ -12,6 +18,13 @@ type Eye = {
   y: number;
   tx: number;
   ty: number;
+  restX: number;
+  restY: number;
+};
+
+type Lid = {
+  el: SVGEllipseElement;
+  ry: number;
 };
 
 let started = false;
@@ -30,16 +43,35 @@ export function initEyeMarks(): void {
       const cy = Number(group.dataset.cy);
       const x = Number(pupil.getAttribute('cx'));
       const y = Number(pupil.getAttribute('cy'));
-      eyes.push({ mark, pupil, cx, cy, base: Math.hypot(x - cx, y - cy), x, y, tx: x, ty: y });
+      eyes.push({
+        mark,
+        pupil,
+        cx,
+        cy,
+        base: Math.hypot(x - cx, y - cy),
+        x,
+        y,
+        tx: x,
+        ty: y,
+        restX: x,
+        restY: y,
+      });
     }
   }
   if (eyes.length === 0) return;
+
+  const lids: Lid[] = [];
+  for (const el of document.querySelectorAll<SVGEllipseElement>('[data-lid]')) {
+    const ry = Number(el.getAttribute('ry'));
+    if (Number.isFinite(ry)) lids.push({ el, ry });
+  }
 
   let pointerX = 0;
   let pointerY = 0;
   let hasPointer = false;
   let frame = 0;
   let last = 0;
+  let idleTimer: number | undefined;
 
   const aim = (eye: Eye) => {
     const rect = eye.mark.getBoundingClientRect();
@@ -82,16 +114,56 @@ export function initEyeMarks(): void {
     frame = requestAnimationFrame(tick);
   };
 
+  // Pointer stopped: ease the pupils back to their resting position, where the
+  // overlay lines up with the raster icon again.
+  const rest = () => {
+    hasPointer = false;
+    for (const eye of eyes) {
+      eye.tx = eye.restX;
+      eye.ty = eye.restY;
+    }
+    wake();
+  };
+
   window.addEventListener(
     'pointermove',
     (event) => {
       pointerX = event.clientX;
       pointerY = event.clientY;
       hasPointer = true;
+      clearTimeout(idleTimer);
+      idleTimer = window.setTimeout(rest, IDLE_MS);
       wake();
     },
     { passive: true },
   );
   window.addEventListener('scroll', wake, { passive: true });
   window.addEventListener('resize', wake, { passive: true });
+
+  // The lid collapses to 10% of its resting height and springs back; the
+  // opaque socket behind it hides the raster eye the whole time.
+  const blink = () => {
+    const start = performance.now();
+    const step = (now: number) => {
+      const t = Math.min(1, (now - start) / BLINK_MS);
+      const open = 1 - 0.9 * Math.sin(Math.PI * t);
+      for (const lid of lids) lid.el.setAttribute('ry', (lid.ry * open).toFixed(2));
+      if (t < 1) {
+        requestAnimationFrame(step);
+        return;
+      }
+      for (const lid of lids) lid.el.setAttribute('ry', String(lid.ry));
+    };
+    requestAnimationFrame(step);
+  };
+
+  const scheduleBlink = () => {
+    const wait = BLINK_MIN + Math.random() * (BLINK_MAX - BLINK_MIN);
+    setTimeout(() => {
+      if (!document.hidden) blink();
+      scheduleBlink();
+    }, wait);
+  };
+
+  if (lids.length > 0) scheduleBlink();
 }
