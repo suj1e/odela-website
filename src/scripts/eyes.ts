@@ -23,8 +23,10 @@ type Eye = {
 };
 
 type Lid = {
-  el: SVGEllipseElement;
-  ry: number;
+  el: SVGGElement;
+  cx: number;
+  cy: number;
+  pupil: SVGCircleElement | null;
 };
 
 let started = false;
@@ -61,9 +63,12 @@ export function initEyeMarks(): void {
   if (eyes.length === 0) return;
 
   const lids: Lid[] = [];
-  for (const el of document.querySelectorAll<SVGEllipseElement>('[data-lid]')) {
-    const ry = Number(el.getAttribute('ry'));
-    if (Number.isFinite(ry)) lids.push({ el, ry });
+  for (const el of document.querySelectorAll<SVGGElement>('[data-lid]')) {
+    const cx = Number(el.dataset.cx);
+    const cy = Number(el.dataset.cy);
+    if (Number.isFinite(cx) && Number.isFinite(cy)) {
+      lids.push({ el, cx, cy, pupil: el.querySelector<SVGCircleElement>('[data-pupil]') });
+    }
   }
 
   let pointerX = 0;
@@ -140,19 +145,32 @@ export function initEyeMarks(): void {
   window.addEventListener('scroll', wake, { passive: true });
   window.addEventListener('resize', wake, { passive: true });
 
-  // The lid collapses to 10% of its resting height and springs back; the
-  // opaque socket behind it hides the raster eye the whole time.
+  // The whole eye (white + pupil) squashes vertically around its centre, so
+  // the slit stays parallel to the ground instead of following the icon's
+  // tilt; it collapses to 10% and springs back. The pupil fades out on the way
+  // down so the closed eye is one clean line instead of a notched slit.
   const blink = () => {
     const start = performance.now();
     const step = (now: number) => {
       const t = Math.min(1, (now - start) / BLINK_MS);
       const open = 1 - 0.9 * Math.sin(Math.PI * t);
-      for (const lid of lids) lid.el.setAttribute('ry', (lid.ry * open).toFixed(2));
+      const scale = open.toFixed(3);
+      const pupilOpacity = Math.max(0, Math.min(1, (open - 0.3) / 0.3)).toFixed(2);
+      for (const lid of lids) {
+        lid.el.setAttribute(
+          'transform',
+          `translate(${lid.cx} ${lid.cy}) scale(1 ${scale}) translate(${-lid.cx} ${-lid.cy})`,
+        );
+        if (lid.pupil) lid.pupil.style.opacity = pupilOpacity;
+      }
       if (t < 1) {
         requestAnimationFrame(step);
         return;
       }
-      for (const lid of lids) lid.el.setAttribute('ry', String(lid.ry));
+      for (const lid of lids) {
+        lid.el.removeAttribute('transform');
+        if (lid.pupil) lid.pupil.style.opacity = '';
+      }
     };
     requestAnimationFrame(step);
   };
