@@ -11,7 +11,7 @@ odela does not bundle an agent runtime. Install OMP or Pi first and make sure it
 
 Add a workspace, choose a folder, and create a session.
 
-## 3. Let the agent control panes
+## 3. Let the agent control tabs
 
 ```bash
 odela --skills --json
@@ -24,5 +24,5 @@ odela files reveal src/app.go
 ## Next
 
 - Send your first prompt in chat.
-- Open the terminal, files or browser pane.
+- Open the terminal, files or browser tab.
 - Close and reopen the desktop; the session keeps running in core.

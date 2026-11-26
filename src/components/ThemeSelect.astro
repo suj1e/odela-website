@@ -1,50 +1,135 @@
 ---
 interface Props {
-  lang: 'zh' | 'en';
+  lang?: 'zh' | 'en';
 }
-const { lang } = Astro.props;
+const isEn = Astro.url.pathname.startsWith('/en');
+const lang = Astro.props.lang ?? (isEn ? 'en' : 'zh');
 const zh = lang === 'zh';
+const labels = {
+  dark: zh ? '深色' : 'Dark',
+  light: zh ? '浅色' : 'Light',
+  auto: zh ? '自动' : 'Auto',
+};
 ---
-<label class="theme-select">
-  <span class="sr-only">{zh ? '选择主题' : 'Select theme'}</span>
-  <select data-theme-select aria-label={zh ? '选择主题' : 'Select theme'}>
-    <option value="dark">{zh ? '深色' : 'Dark'}</option>
-    <option value="light">{zh ? '浅色' : 'Light'}</option>
-    <option value="auto">{zh ? '自动' : 'Auto'}</option>
-  </select>
-</label>
+<div
+  class="theme-switch"
+  data-theme-switch
+  data-label-dark={labels.dark}
+  data-label-light={labels.light}
+  data-label-auto={labels.auto}
+>
+  <button
+    type="button"
+    class="ts-toggle"
+    aria-haspopup="true"
+    aria-expanded="false"
+    aria-label={zh ? '选择主题' : 'Select theme'}
+  >
+    <span class="ts-icon" aria-hidden="true">
+      <svg data-glyph="dark" viewBox="0 0 16 16"><path d="M13 10.4A5.6 5.6 0 0 1 5.6 3a5.6 5.6 0 1 0 7.4 7.4Z" fill="currentColor" opacity=".9" /></svg>
+      <svg data-glyph="light" viewBox="0 0 16 16"><circle cx="8" cy="8" r="3.2" fill="currentColor" /><g stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><path d="M8 1.6v1.9M8 12.5v1.9M1.6 8h1.9M12.5 8h1.9M3.5 3.5l1.3 1.3M11.2 11.2l1.3 1.3M12.5 3.5l-1.3 1.3M4.8 11.2L3.5 12.5" /></g></svg>
+      <svg data-glyph="auto" viewBox="0 0 16 16"><circle cx="8" cy="8" r="5.2" fill="none" stroke="currentColor" stroke-width="1.2" /><path d="M8 2.8a5.2 5.2 0 0 0 0 10.4Z" fill="currentColor" /></svg>
+    </span>
+    <span class="ts-label" data-ts-label>{labels.dark}</span>
+    <svg class="ts-caret" viewBox="0 0 10 6" aria-hidden="true"><path d="M1 1l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" /></svg>
+  </button>
+
+  <div class="ts-menu" role="menu" hidden>
+    {(['dark', 'light', 'auto'] as const).map((value) => (
+      <button type="button" class="ts-item" role="menuitemradio" aria-checked="false" data-theme-value={value}>
+        <span>{labels[value]}</span>
+        <i class="ts-dot" aria-hidden="true"></i>
+      </button>
+    ))}
+  </div>
+</div>
 
 <script is:inline>
   (() => {
     const storageKey = 'starlight-theme';
+    const roots = Array.from(document.querySelectorAll('[data-theme-switch]'));
+    if (!roots.length) return;
+
     const parseTheme = (value) =>
       value === 'light' || value === 'dark' ? value : 'auto';
     const preferredTheme = () =>
       matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
 
-    const applyTheme = (theme) => {
-      document.documentElement.dataset.theme =
-        theme === 'auto' ? preferredTheme() : theme;
-      document.querySelectorAll('[data-theme-select]').forEach((select) => {
-        select.value = theme;
+    const sync = (theme) => {
+      roots.forEach((root) => {
+        root.dataset.value = theme;
+        const label = root.querySelector('[data-ts-label]');
+        if (label) {
+          const key = 'label' + theme.charAt(0).toUpperCase() + theme.slice(1);
+          label.textContent = root.dataset[key] || theme;
+        }
+        root.querySelectorAll('[data-theme-value]').forEach((item) => {
+          item.setAttribute('aria-checked', String(item.dataset.themeValue === theme));
+        });
       });
-      try {
-        localStorage.setItem(storageKey, theme === 'auto' ? '' : theme);
-      } catch {}
     };
 
-    const selects = document.querySelectorAll('[data-theme-select]');
-    selects.forEach((select) => {
-      select.value = parseTheme(localStorage.getItem(storageKey));
-      select.addEventListener('change', () => {
-        applyTheme(parseTheme(select.value));
+    const closeAll = () => {
+      roots.forEach((root) => {
+        const menu = root.querySelector('.ts-menu');
+        const toggle = root.querySelector('.ts-toggle');
+        if (menu) menu.hidden = true;
+        if (toggle) toggle.setAttribute('aria-expanded', 'false');
       });
+    };
+
+    const applyTheme = (theme, persist) => {
+      document.documentElement.dataset.theme =
+        theme === 'auto' ? preferredTheme() : theme;
+      if (persist !== false) {
+        try {
+          localStorage.setItem(storageKey, theme === 'auto' ? '' : theme);
+        } catch {}
+      }
+      sync(theme);
+    };
+
+    roots.forEach((root) => {
+      const toggle = root.querySelector('.ts-toggle');
+      const menu = root.querySelector('.ts-menu');
+      if (!toggle || !menu) return;
+
+      toggle.addEventListener('click', (event) => {
+        event.stopPropagation();
+        const isOpen = !menu.hidden;
+        closeAll();
+        if (isOpen) return;
+        menu.hidden = false;
+        toggle.setAttribute('aria-expanded', 'true');
+        const current =
+          menu.querySelector('[aria-checked="true"]') || menu.querySelector('[data-theme-value]');
+        if (current && current.focus) current.focus({ preventScroll: true });
+      });
+
+      root.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && !menu.hidden) {
+          closeAll();
+          toggle.focus({ preventScroll: true });
+        }
+      });
+
+      menu.addEventListener('click', (event) => {
+        const item = event.target.closest('[data-theme-value]');
+        if (!item) return;
+        applyTheme(parseTheme(item.dataset.themeValue), true);
+        closeAll();
+        toggle.focus({ preventScroll: true });
+      });
+    });
+
+    document.addEventListener('click', (event) => {
+      if (!event.target.closest('[data-theme-switch]')) closeAll();
     });
 
     matchMedia('(prefers-color-scheme: light)').addEventListener('change', () => {
-      if (parseTheme(localStorage.getItem(storageKey)) === 'auto') {
-        applyTheme('auto');
-      }
+      if (parseTheme(localStorage.getItem(storageKey)) === 'auto') applyTheme('auto', false);
     });
+
+    applyTheme(parseTheme(localStorage.getItem(storageKey)), false);
   })();
 </script>

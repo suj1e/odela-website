@@ -1,0 +1,13 @@
+---
+// Full-viewport decorative layer. Sits behind every page, ignores pointers, and
+// is skipped by assistive tech.
+---
+<div class="bg-sea" aria-hidden="true">
+  <div class="sea-beam beam-a"></div>
+  <div class="sea-beam beam-b"></div>
+  <canvas class="bg-sea-canvas"></canvas>
+</div>
+<script>
+  import { initOcean } from '../scripts/ocean';
+  initOcean();
+</script>

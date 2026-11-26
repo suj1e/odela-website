@@ -1,0 +1,80 @@
+/* Shared theme dropdown: used by the landing page and the docs theme. */
+
+.theme-switch { position: relative; }
+
+.ts-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 30px;
+  padding: 0 11px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  font: 11px/1 var(--font-mono);
+  letter-spacing: .1em;
+  cursor: pointer;
+  transition: color .25s ease, background-color .25s ease, border-color .25s ease;
+}
+.ts-toggle:hover { color: var(--fg); background: var(--card-hover); }
+.ts-toggle[aria-expanded='true'] { color: var(--fg); border-color: var(--seaLight); background: var(--card-hover); }
+
+.ts-icon { display: grid; place-items: center; width: 13px; height: 13px; }
+.ts-icon svg { grid-area: 1 / 1; width: 13px; height: 13px; display: none; }
+.theme-switch[data-value='dark'] .ts-icon svg[data-glyph='dark'],
+.theme-switch[data-value='light'] .ts-icon svg[data-glyph='light'],
+.theme-switch[data-value='auto'] .ts-icon svg[data-glyph='auto'] { display: block; }
+
+.ts-caret { width: 8px; height: 5px; opacity: .65; transition: transform .35s cubic-bezier(.2,.7,.2,1); }
+.ts-toggle[aria-expanded='true'] .ts-caret { transform: rotate(180deg); }
+
+.ts-menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 9px);
+  min-width: 150px;
+  padding: 6px;
+  display: grid;
+  gap: 2px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--menu-bg);
+  -webkit-backdrop-filter: blur(22px) saturate(140%);
+  backdrop-filter: blur(22px) saturate(140%);
+  box-shadow: var(--shadow);
+  z-index: 30;
+  transform-origin: top right;
+  animation: menu-in .26s cubic-bezier(.2,.7,.2,1) both;
+}
+.ts-menu[hidden] { display: none; }
+@keyframes menu-in {
+  from { opacity: 0; transform: translateY(-6px) scale(.97); }
+  to { opacity: 1; transform: none; }
+}
+.ts-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--muted);
+  font: 12.5px/1.2 var(--font-sans);
+  text-align: left;
+  cursor: pointer;
+  transition: background-color .2s ease, color .2s ease;
+}
+.ts-item:hover { background: var(--card-hover); color: var(--fg); }
+.ts-item[aria-checked='true'] { color: var(--fg); }
+.ts-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0;
+  transition: opacity .2s ease;
+}
+.ts-item[aria-checked='true'] .ts-dot { opacity: 1; background: var(--seaLight); }

@@ -1,8 +1,10 @@
 ---
 import '../styles/landing.css';
+import Backdrop from './Backdrop.astro';
 import Mark from './Mark.astro';
 import ThemeHead from './ThemeHead.astro';
 import ThemeSelect from './ThemeSelect.astro';
+
 interface Props {
   lang: 'zh' | 'en';
 }
@@ -10,32 +12,66 @@ const { lang } = Astro.props;
 const zh = lang === 'zh';
 const text = zh
   ? {
-      tag: '多 agent 的本地工作台',
+      kicker: '多 agent 的本地工作台',
       title: '多个 agents，\n一个工作台。',
-      lead: '每个 agent 有自己的 space、session 和 pane；原生桌面，CLI 可控，session 在 core 里继续跑。',
+      lead: '每个 agent 有自己的 space、session 和 tab。<span class="nb">原生桌面</span>，CLI 可控，session 在 core 里继续跑。',
       download: '下载 0.1.0',
       docs: '文档',
+      scroll: '向下',
+      heroMeta: 'macOS · Windows · Linux — developer build 0.1.0',
+      spec: [
+        ['版本', '0.1.0'],
+        ['平台', 'macOS · Windows · Linux'],
+        ['形态', '原生桌面'],
+        ['控制', 'CLI 可控'],
+      ],
+      sectionLabel: 'capabilities',
+      sectionCount: '04',
       features: [
         ['多个 agents', 'OMP、Pi，之后还会更多；各自有 space 和 session。'],
         ['Spaces', '按项目组织 agents 和 sessions，不混上下文。'],
-        ['Panes', 'chat、browser、files、terminal 组合，不抢同一个窗口。'],
-        ['CLI 可控', 'agent 用 odela --skills 发现能力，直接控制 pane。'],
+        ['Tabs', 'chat、browser、files、terminal 各占一个 tab，不抢同一个窗口。'],
+        ['CLI 可控', 'agent 用 odela --skills 发现能力，直接控制 tab。'],
       ],
-      note: '0.1.0 为未签名开发版；截图与下载在发布前补齐。',
+      statementText: '一个 agent 一个 tab，\n不抢同一个窗口。',
+      statementNote: 'session 留在 core 里继续跑，\ntab 只是它的一扇窗。',
+      closeKicker: 'release',
+      closeTitle: '0.1.0 是未签名开发版。',
+      closeBody: '安装包发布后会出现在 GitHub Releases。macOS 可能需要手动允许打开，Windows 可能出现 SmartScreen 提示。',
+      closePrimary: 'GitHub Releases',
+      closeSecondary: '下载 0.1.0',
+      footer: '本地优先的工作台',
     }
   : {
-      tag: 'A local-first multi-agent workspace',
+      kicker: 'A local-first multi-agent workspace',
       title: 'Multiple agents.\nOne workspace.',
-      lead: 'Each agent gets its own space, session and panes. Native desktop, CLI control, sessions that keep running in core.',
+      lead: 'Each agent gets its own space, session and tabs. Native desktop, CLI control, sessions that keep running in core.',
       download: 'Download 0.1.0',
       docs: 'Docs',
+      scroll: 'Scroll',
+      heroMeta: 'macOS · Windows · Linux — developer build 0.1.0',
+      spec: [
+        ['Version', '0.1.0'],
+        ['Platform', 'macOS · Windows · Linux'],
+        ['Shape', 'Native desktop'],
+        ['Control', 'CLI-driven'],
+      ],
+      sectionLabel: 'capabilities',
+      sectionCount: '04',
       features: [
         ['Multiple agents', 'OMP and Pi first; more through adapters later.'],
         ['Spaces', 'Organize agents and sessions by project without mixing context.'],
-        ['Panes', 'Chat, browser, files and terminal side by side.'],
-        ['CLI control', 'Agents discover odela --skills and control panes directly.'],
+        ['Tabs', 'Chat, browser, files and terminal, one tab each.'],
+        ['CLI control', 'Agents discover odela --skills and control tabs directly.'],
       ],
-      note: '0.1.0 is an unsigned developer build; screenshots and downloads land before release.',
+      statementText: 'One agent, one tab.\nNever the same window.',
+      statementNote: 'Sessions keep running in core.\nA tab is just a window onto them.',
+      closeKicker: 'release',
+      closeTitle: '0.1.0 is an unsigned developer build.',
+      closeBody: 'Installers land on GitHub Releases. macOS may need an allow in Privacy & Security; Windows may show SmartScreen.',
+      closePrimary: 'GitHub Releases',
+      closeSecondary: 'Download 0.1.0',
+      footer: 'A local-first workspace',
     };
 ---
 <!doctype html>
@@ -49,54 +85,107 @@ const text = zh
     <ThemeHead />
   </head>
   <body>
+    <a class="skip-link" href="#capabilities">{zh ? '跳到内容' : 'Skip to content'}</a>
+    <Backdrop />
+
     <header class="site-head">
-      <a class="brand" href={zh ? '/' : '/en/'}>
-        <Mark class="brand-mark" />
-        <span>odela</span>
-      </a>
-      <nav>
-        <a href={zh ? '/docs' : '/en/docs'}>{text.docs}</a>
-        <a class="nav-download" href={zh ? '/download' : '/en/download'}>{text.download}</a>
-        <ThemeSelect lang={lang} />
-        <a href={zh ? '/en/' : '/'}>{zh ? 'EN' : '中文'}</a>
-      </nav>
+      <div class="head-inner">
+        <a class="brand" href={zh ? '/' : '/en/'}>
+          <Mark class="brand-mark" />
+          <span>odela</span>
+        </a>
+        <nav>
+          <a href={zh ? '/docs' : '/en/docs'}>{text.docs}</a>
+          <a class="nav-download" href={zh ? '/download' : '/en/download'}>{text.download}</a>
+          <ThemeSelect lang={lang} />
+          <a href={zh ? '/en/' : '/'}>{zh ? 'EN' : '中文'}</a>
+        </nav>
+      </div>
     </header>
 
     <main>
       <section class="hero">
         <div class="hero-copy">
-          <p class="tag">{text.tag}</p>
+          <p class="kicker"><span class="pip"></span>{text.kicker}</p>
           <h1>{text.title}</h1>
-          <p class="lead">{text.lead}</p>
+          <p class="lead" set:html={text.lead} />
           <div class="actions">
-            <a class="button primary" href={zh ? '/download' : '/en/download'}>{text.download}</a>
-            <a class="button" href={zh ? '/docs' : '/en/docs'}>{text.docs}</a>
+            <a class="button primary" href={zh ? '/download' : '/en/download'}>
+              {text.download}
+              <svg class="arrow" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 8h10.5M9 4l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /></svg>
+            </a>
+          </div>
+          <p class="hero-meta">{text.heroMeta}</p>
+        </div>
+
+        <div class="hero-mark-wrap" aria-hidden="true">
+          <div class="hero-mark">
+            <span class="sonar"></span>
+            <Mark class="hero-mark-icon" />
           </div>
         </div>
-        <div class="mark" aria-hidden="true">
-          <Mark class="hero-mark" />
+      </section>
+
+      <div class="hero-line" aria-hidden="true"></div>
+
+      <dl class="spec" data-reveal>
+        {text.spec.map(([label, value]) => (
+          <div class="spec-item">
+            <dt>{label}</dt>
+            <dd>{value}</dd>
+          </div>
+        ))}
+      </dl>
+
+      <section class="features" id="capabilities">
+        <div class="section-label">
+          <span>{text.sectionLabel}</span>
+          <span>{text.sectionCount}</span>
+        </div>
+        <div class="feature-list">
+          {text.features.map(([title, body], i) => (
+            <article class="feature-row" data-reveal>
+              <span class="idx">{String(i + 1).padStart(2, '0')}</span>
+              <h2>{title}</h2>
+              <p>{body}</p>
+            </article>
+          ))}
         </div>
       </section>
 
-      <section class="features">
-        {text.features.map(([title, body]) => (
-          <article>
-            <h2>{title}</h2>
-            <p>{body}</p>
-          </article>
-        ))}
+      <section class="statement" data-reveal>
+        <p class="statement-text">{text.statementText}</p>
+        <p class="statement-note">{text.statementNote}</p>
       </section>
 
-      <p class="note">{text.note}</p>
+      <section class="close" data-reveal>
+        <p class="close-kicker">{text.closeKicker}</p>
+        <h2>{text.closeTitle}</h2>
+        <p>{text.closeBody}</p>
+        <div class="actions">
+          <a class="button primary" href="https://github.com/suj1e/odela-releases" rel="noreferrer">
+            {text.closePrimary}
+            <svg class="arrow" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 8h10.5M9 4l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /></svg>
+          </a>
+          <a class="button" href={zh ? '/download' : '/en/download'}>{text.closeSecondary}</a>
+        </div>
+      </section>
     </main>
 
     <footer>
-      <span>odela</span>
-      <a href="https://github.com/suj1e/odela-releases">GitHub Releases</a>
+      <div class="foot-inner">
+        <span class="foot-brand">odela — {text.footer}</span>
+        <a href="https://github.com/suj1e/odela-releases">GitHub Releases</a>
+      </div>
     </footer>
+
     <script>
       import { initEyeMarks } from '../scripts/eyes';
+      import { initReveal, initParallax } from '../scripts/reveal';
       initEyeMarks();
+      initReveal();
+      initParallax();
     </script>
   </body>
 </html>
+

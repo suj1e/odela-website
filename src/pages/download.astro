@@ -1,14 +1,17 @@
 ---
 import '../styles/landing.css';
+import Backdrop from '../components/Backdrop.astro';
 import Mark from '../components/Mark.astro';
 import ThemeHead from '../components/ThemeHead.astro';
 import ThemeSelect from '../components/ThemeSelect.astro';
 const text = {
+  kicker: 'release · 0.1.0',
   title: '下载 odela',
   lead: '0.1.0 尚未发布。发布后会在这里给出 macOS、Windows、Linux 的未签名安装包。',
   warning: '未签名版本：macOS 可能需要在“隐私与安全性”中允许打开；Windows 可能出现 SmartScreen 提示。',
   releases: '查看 odela-releases',
-  docs: '文档',
+  pending: '未发布',
+  platforms: ['macOS', 'Windows', 'Linux'],
 };
 ---
 <!doctype html>
@@ -22,24 +25,56 @@ const text = {
     <ThemeHead />
   </head>
   <body>
+    <Backdrop />
     <header class="site-head">
-      <a class="brand" href="/"><Mark class="brand-mark" /><span>odela</span></a>
-      <nav><a href="/docs">文档</a><ThemeSelect lang="zh" /><a href="/en/download">EN</a></nav>
+      <div class="head-inner">
+        <a class="brand" href="/"><Mark class="brand-mark" /><span>odela</span></a>
+        <nav>
+          <a href="/docs">文档</a>
+          <ThemeSelect lang="zh" />
+          <a href="/en/download">EN</a>
+        </nav>
+      </div>
     </header>
+
     <main class="simple">
-      <p class="tag">release</p>
+      <p class="kicker"><span class="pip"></span>{text.kicker}</p>
       <h1>{text.title}</h1>
       <p class="lead">{text.lead}</p>
-      <p class="note">{text.warning}</p>
+
+      <ul class="release-list">
+        {text.platforms.map((platform) => (
+          <li>
+            <span class="plat">{platform}</span>
+            <span class="state">{text.pending}</span>
+          </li>
+        ))}
+      </ul>
+
       <div class="actions">
-        <a class="button primary" href="https://github.com/suj1e/odela-releases">{text.releases}</a>
-        <a class="button" href="/docs">{text.docs}</a>
+        <a class="button primary" href="https://github.com/suj1e/odela-releases">
+          {text.releases}
+          <svg class="arrow" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 8h10.5M9 4l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /></svg>
+        </a>
       </div>
+
+      <p class="note">{text.warning}</p>
     </main>
-    <footer><span>odela</span><a href="https://github.com/suj1e/odela-releases">GitHub Releases</a></footer>
+
+    <footer>
+      <div class="foot-inner">
+        <span class="foot-brand">odela — 本地优先的工作台</span>
+        <a href="https://github.com/suj1e/odela-releases">GitHub Releases</a>
+      </div>
+    </footer>
+
     <script>
       import { initEyeMarks } from '../scripts/eyes';
+      import { initReveal } from '../scripts/reveal';
       initEyeMarks();
+      initReveal();
     </script>
   </body>
 </html>
+
+

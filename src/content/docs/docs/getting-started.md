@@ -11,7 +11,7 @@ odela 不内置 agent runtime。先安装 OMP 或 Pi，并确认它们能在终�
 
 启动桌面端后，添加一个 workspace，选择文件夹，并创建一个 session。
 
-## 3. 让 agent 控制 pane
+## 3. 让 agent 控制 tab
 
 ```bash
 odela --skills --json
@@ -24,5 +24,5 @@ odela files reveal src/app.go
 ## 下一步
 
 - 在 chat 里发第一条 prompt。
-- 打开 terminal、files 或 browser pane。
+- 打开 terminal、files 或 browser tab。
 - 关闭桌面后重新打开，确认 session 仍在 core 中运行。
