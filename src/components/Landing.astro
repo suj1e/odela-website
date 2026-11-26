@@ -175,16 +175,31 @@ const text = zh
     <footer>
       <div class="foot-inner">
         <span class="foot-brand">odela — {text.footer}</span>
-        <a href="https://github.com/suj1e/odela-releases">GitHub Releases</a>
+        <div class="foot-actions">
+          <button
+            class="sound-switch"
+            type="button"
+            data-sound-toggle
+            data-on={zh ? '声音 开' : 'Sound on'}
+            data-off={zh ? '声音 关' : 'Sound off'}
+            aria-pressed="false"
+          >
+            <span class="sound-note" aria-hidden="true">♪</span>
+            <span data-sound-label>{zh ? '声音 关' : 'Sound off'}</span>
+          </button>
+          <a href="https://github.com/suj1e/odela-releases">GitHub Releases</a>
+        </div>
       </div>
     </footer>
 
     <script>
       import { initEyeMarks } from '../scripts/eyes';
       import { initReveal, initParallax } from '../scripts/reveal';
+      import { initPiano } from '../scripts/piano';
       initEyeMarks();
       initReveal();
       initParallax();
+      initPiano();
     </script>
   </body>
 </html>

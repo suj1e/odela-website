@@ -594,6 +594,50 @@ footer {
 .foot-inner a { text-decoration: none; transition: color .25s ease; }
 .foot-inner a:hover { color: var(--fg); }
 
+.foot-actions {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+/* the piano switch: a note at rest, a note that glows once it is playing */
+.sound-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0;
+  padding: 2px 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  letter-spacing: inherit;
+  color: var(--faint);
+  cursor: pointer;
+  transition: color .25s ease;
+}
+.sound-switch:hover { color: var(--fg); }
+.sound-switch:focus-visible {
+  outline: 1px solid var(--line);
+  outline-offset: 4px;
+  border-radius: 2px;
+}
+.sound-note {
+  font-size: 12px;
+  line-height: 1;
+  opacity: .55;
+  transition: opacity .3s ease, text-shadow .3s ease;
+}
+.sound-switch[aria-pressed='true'] { color: var(--fg); }
+.sound-switch[aria-pressed='true'] .sound-note {
+  opacity: 1;
+  text-shadow: 0 0 14px var(--halo);
+  animation: sound-breathe 4.2s ease-in-out infinite;
+}
+@keyframes sound-breathe {
+  0%, 100% { opacity: .72; text-shadow: 0 0 8px var(--halo); }
+  50% { opacity: 1; text-shadow: 0 0 18px var(--halo); }
+}
+
 /* --- download pages ------------------------------------------------------ */
 
 .simple { max-width: 800px; padding-top: clamp(52px, 10vh, 112px); padding-bottom: clamp(40px, 7vh, 80px); }

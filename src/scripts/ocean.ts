@@ -40,6 +40,19 @@ type Palette = {
   sword: string;
 };
 
+// One small boat, far out, sailing along the hairline that closes the hero.
+// Nothing but a hull, a mast and a sail, bobbing a couple of pixels.
+type Boat = {
+  x: number;
+  y: number;
+  dir: number;
+  speed: number;
+  age: number;
+  phase: number;
+  scale: number;
+  announced: boolean;
+};
+
 const TAU = Math.PI * 2;
 
 function palette(): Palette {
@@ -80,12 +93,14 @@ export function initOcean(): void {
   let specks: Speck[] = [];
   let ripples: Ripple[] = [];
   let blades: Blade[] = [];
+  let boats: Boat[] = [];
   let width = 0;
   let height = 0;
   let raf = 0;
   let time = 0;
   let last = 0;
   let nextAmbient = 0;
+  let nextBoat = 0;
 
   const makeSpeck = (): Speck => {
     const near = Math.random();
@@ -241,6 +256,123 @@ export function initOcean(): void {
     }
   }
 
+  // A boat shows up every half minute or so and takes its time crossing the
+  // water right above the hero's hairline — the one band where no copy lives.
+  function maybeBoat(): void {
+    if (reduceQuery.matches || boats.length > 0) return;
+    const now = performance.now();
+    if (now < nextBoat) return;
+    const line = document.querySelector<HTMLElement>('.hero-line');
+    if (!line) return;
+    const rect = line.getBoundingClientRect();
+    if (!rect.width || rect.top < 90 || rect.top > height - 10) return;
+
+    nextBoat = now + 24000 + Math.random() * 20000;
+    const dir = Math.random() < 0.5 ? 1 : -1;
+    const scale = 0.82 + Math.random() * 0.22;
+    const y = Math.min(height - 24, rect.top - 3);
+    boats.push({
+      x: dir === 1 ? -40 : width + 40,
+      y,
+      dir,
+      speed: 17 + Math.random() * 8,
+      age: 0,
+      phase: Math.random() * TAU,
+      scale,
+      announced: false,
+    });
+  }
+
+  function drawBoats(dt: number): void {
+    const p = palette();
+    for (let i = boats.length - 1; i >= 0; i -= 1) {
+      const bt = boats[i];
+      bt.age += dt / 60;
+      bt.x += bt.dir * bt.speed * (dt / 60);
+      if (bt.dir === 1 && bt.x > width + 60) {
+        boats.splice(i, 1);
+        continue;
+      }
+      if (bt.dir === -1 && bt.x < -60) {
+        boats.splice(i, 1);
+        continue;
+      }
+
+      // the piano upstairs hears the boat when it reaches the middle of the water
+      const centre = width * 0.5;
+      if (!bt.announced && Math.abs(bt.x - centre) < 30) {
+        bt.announced = true;
+        window.dispatchEvent(new CustomEvent('odela:boat', { detail: { x: bt.x, y: bt.y } }));
+      }
+
+      const s = bt.scale;
+      const bob = Math.sin(time * 0.55 + bt.phase) * 1.5;
+      const tilt = Math.sin(time * 0.42 + bt.phase) * 0.018;
+      // fade in and out at the edges so nothing pops on screen
+      const env = Math.min(1, Math.max(0, Math.min(bt.x + 60, width - bt.x) / 130));
+
+      ctx.save();
+      ctx.translate(bt.x, bt.y + bob);
+      ctx.scale(bt.dir, 1);
+      ctx.rotate(tilt);
+
+      const hull = 24 * s;
+      const mast = 15 * s;
+
+      // hull: a shallow crescent cut, bow lifted a little
+      ctx.beginPath();
+      ctx.moveTo(-hull / 2, -0.8 * s);
+      ctx.quadraticCurveTo(0, 4.2 * s, hull / 2, -2.6 * s);
+      ctx.quadraticCurveTo(hull / 4, 2.1 * s, -hull / 2, -0.8 * s);
+      ctx.closePath();
+      ctx.fillStyle = rgba(p.sword, 0.12 * env);
+      ctx.fill();
+      ctx.strokeStyle = rgba(p.sword, 0.42 * env);
+      ctx.lineWidth = 1;
+      ctx.stroke();
+
+      // mast
+      ctx.beginPath();
+      ctx.moveTo(0, -1 * s);
+      ctx.lineTo(0, -mast);
+      ctx.strokeStyle = rgba(p.sword, 0.36 * env);
+      ctx.lineWidth = 1;
+      ctx.stroke();
+
+      // sail: one curve from the masthead down to the deck, belly forward
+      ctx.beginPath();
+      ctx.moveTo(0.4 * s, -mast + 1.5 * s);
+      ctx.quadraticCurveTo(mast * 0.52, -mast * 0.52, mast * 0.3, -mast * 0.04);
+      ctx.closePath();
+      ctx.fillStyle = rgba(p.sword, 0.07 * env);
+      ctx.fill();
+      ctx.strokeStyle = rgba(p.sword, 0.3 * env);
+      ctx.lineWidth = 1;
+      ctx.stroke();
+
+      // wake: two thin lines widening behind the stern
+      const wakeLen = Math.min(34, 6 + bt.age * 5) * s;
+      for (let k = 0; k < 2; k += 1) {
+        ctx.beginPath();
+        ctx.moveTo(-hull / 2 + 1, 1 * s);
+        ctx.lineTo(-hull / 2 - wakeLen, 1 * s + (k === 0 ? -1.6 : 1.3) * s * (0.5 + wakeLen / 44));
+        ctx.strokeStyle = rgba(p.sword, (0.14 - k * 0.04) * env);
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      }
+
+      // soft reflection under the hull
+      ctx.beginPath();
+      ctx.moveTo(-hull / 2 + 3, 2.8 * s);
+      ctx.lineTo(hull / 2 - 4, 2.8 * s);
+      ctx.strokeStyle = rgba(p.sword, 0.1 * env);
+      ctx.lineWidth = 1;
+      ctx.stroke();
+
+      ctx.restore();
+    }
+  }
+
   function drawSea(dt: number): void {
     const p = palette();
     ctx.clearRect(0, 0, width, height);
@@ -304,6 +436,7 @@ export function initOcean(): void {
     }
 
     drawBlades(dt);
+    drawBoats(dt);
 
     // Click ripples and the rings a blade's point leaves behind.
     for (let i = ripples.length - 1; i >= 0; i -= 1) {
@@ -332,6 +465,7 @@ export function initOcean(): void {
     last = now;
     time += dt / 60;
     maybeAmbientBlade();
+    maybeBoat();
     drawSea(dt);
     raf = requestAnimationFrame(frame);
   }
@@ -410,6 +544,7 @@ export function initOcean(): void {
 
   resize();
   nextAmbient = performance.now() + 1600;
+  nextBoat = performance.now() + 9000;
   if (reduceQuery.matches) drawSea(0);
   else start();
 }
