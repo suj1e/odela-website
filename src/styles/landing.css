@@ -356,6 +356,46 @@ main {
   50% { transform: translateY(-8px); }
 }
 
+/* poking the mark: bump, wobble and the rings that answer a burst of clicks */
+.hero-mark { cursor: pointer; }
+.hero-mark-wrap,
+.hero-mark,
+.eye-mark,
+.eye-mark img { user-select: none; -webkit-user-select: none; }
+.eye-mark img { -webkit-user-drag: none; }
+
+@keyframes mark-bump {
+  0% { transform: scale(1) translateY(0); }
+  30% { transform: scale(1.065) translateY(-5px); }
+  58% { transform: scale(.982) translateY(0); }
+  100% { transform: scale(1) translateY(0); }
+}
+.hero-mark.is-bump { animation: mark-bump 440ms cubic-bezier(.2, .7, .2, 1); }
+
+@keyframes mark-wobble {
+  0% { transform: rotate(0) translateY(0); }
+  16% { transform: rotate(-3.2deg) translateY(-9px); }
+  36% { transform: rotate(2.8deg) translateY(-3px); }
+  56% { transform: rotate(-1.8deg) translateY(-7px); }
+  76% { transform: rotate(1deg) translateY(0); }
+  100% { transform: rotate(0) translateY(0); }
+}
+.hero-mark.is-wobble { animation: mark-wobble 900ms cubic-bezier(.3, .7, .2, 1); }
+
+.mark-ring {
+  position: absolute;
+  inset: 3%;
+  border-radius: 36%;
+  border: 1px solid var(--seaLight);
+  opacity: 0;
+  pointer-events: none;
+  animation: ring-out 880ms cubic-bezier(.2, .7, .2, 1) forwards;
+}
+@keyframes ring-out {
+  0% { transform: scale(.96); opacity: .66; }
+  100% { transform: scale(1.3); opacity: 0; }
+}
+
 /* waterline: one hairline, with a soft reflected glow above it */
 .hero-line {
   position: relative;
@@ -687,6 +727,7 @@ footer {
 @media (prefers-reduced-motion: reduce) {
   * { animation-duration: .001ms !important; animation-iteration-count: 1 !important; }
   html { scroll-behavior: auto; }
+  .hero-mark { cursor: default; }
   .sea-beam, .pip, .sonar, .hero-mark::after, .hero-mark-icon, .scroll-hint i::after { animation: none !important; }
   .hero-copy > *, .hero-mark-wrap { animation: none !important; }
   [data-reveal] { opacity: 1; transform: none; transition: none; }

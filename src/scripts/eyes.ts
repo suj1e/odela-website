@@ -149,31 +149,122 @@ export function initEyeMarks(): void {
   // the slit stays parallel to the ground instead of following the icon's
   // tilt; it collapses to 10% and springs back. The pupil fades out on the way
   // down so the closed eye is one clean line instead of a notched slit.
-  const blink = () => {
+  const setLid = (lid: Lid, open: number) => {
+    lid.el.setAttribute(
+      'transform',
+      `translate(${lid.cx} ${lid.cy}) scale(1 ${open.toFixed(3)}) translate(${-lid.cx} ${-lid.cy})`,
+    );
+    if (lid.pupil) {
+      lid.pupil.style.opacity = Math.max(0, Math.min(1, (open - 0.3) / 0.3)).toFixed(2);
+    }
+  };
+
+  const blinkLids = (targets: Lid[]) => {
+    if (targets.length === 0) return;
     const start = performance.now();
     const step = (now: number) => {
       const t = Math.min(1, (now - start) / BLINK_MS);
       const open = 1 - 0.9 * Math.sin(Math.PI * t);
-      const scale = open.toFixed(3);
-      const pupilOpacity = Math.max(0, Math.min(1, (open - 0.3) / 0.3)).toFixed(2);
-      for (const lid of lids) {
-        lid.el.setAttribute(
-          'transform',
-          `translate(${lid.cx} ${lid.cy}) scale(1 ${scale}) translate(${-lid.cx} ${-lid.cy})`,
-        );
-        if (lid.pupil) lid.pupil.style.opacity = pupilOpacity;
-      }
+      for (const lid of targets) setLid(lid, open);
       if (t < 1) {
         requestAnimationFrame(step);
         return;
       }
-      for (const lid of lids) {
+      for (const lid of targets) {
         lid.el.removeAttribute('transform');
         if (lid.pupil) lid.pupil.style.opacity = '';
       }
     };
     requestAnimationFrame(step);
   };
+
+  const blink = () => blinkLids(lids);
+
+  // Wheels: pupils ride a shrinking circle around the eye centre, so a burst
+  // of pokes makes the mark look dizzy rather than glitchy.
+  let wheelRun = 0;
+  const wheels = (duration: number) => {
+    hasPointer = false;
+    if (frame !== 0) {
+      cancelAnimationFrame(frame);
+      frame = 0;
+    }
+    const run = (wheelRun += 1);
+    const start = performance.now();
+    const step = (now: number) => {
+      if (run !== wheelRun) return;
+      const t = Math.min(1, (now - start) / duration);
+      const eased = 1 - Math.pow(1 - t, 3);
+      const radius = 44 * (1 - eased);
+      const angle = Math.PI * 2 * 1.7 * eased;
+      for (const eye of eyes) {
+        eye.x = eye.cx + Math.cos(angle) * radius;
+        eye.y = eye.cy + Math.sin(angle) * radius;
+        eye.pupil.setAttribute('cx', eye.x.toFixed(2));
+        eye.pupil.setAttribute('cy', eye.y.toFixed(2));
+      }
+      if (t < 1) requestAnimationFrame(step);
+      else rest();
+    };
+    requestAnimationFrame(step);
+  };
+
+  const burstRings = (host: HTMLElement, count: number) => {
+    const live = host.querySelectorAll('.mark-ring');
+    const keep = Math.max(0, 4 - count);
+    for (let i = 0; i < live.length - keep; i += 1) live[i].remove();
+    for (let i = 0; i < count; i += 1) {
+      const ring = document.createElement('span');
+      ring.className = 'mark-ring';
+      ring.style.animationDelay = `${i * 130}ms`;
+      host.appendChild(ring);
+      window.setTimeout(() => ring.remove(), 900 + i * 130);
+    }
+  };
+
+  const replay = (host: HTMLElement, name: string, duration: number) => {
+    host.classList.remove(name);
+    void host.offsetWidth;
+    host.classList.add(name);
+    window.setTimeout(() => host.classList.remove(name), duration);
+  };
+
+  // Poking the mark: two taps bounce it, three earn a wink, five set the
+  // pupils spinning and seven blow the rings out.
+  for (const host of document.querySelectorAll<HTMLElement>('.hero-mark')) {
+    let combo = 0;
+    let last = 0;
+    host.addEventListener('click', () => {
+      const now = performance.now();
+      combo = now - last < 900 ? combo + 1 : 1;
+      last = now;
+
+      if (combo >= 7) {
+        combo = 0;
+        replay(host, 'is-wobble', 1100);
+        burstRings(host, 3);
+        wheels(1100);
+        if (lids.length > 0) {
+          const lastLid = lids[lids.length - 1];
+          window.setTimeout(() => blinkLids([lastLid]), 320);
+        }
+        return;
+      }
+      if (combo === 5) {
+        replay(host, 'is-wobble', 1100);
+        burstRings(host, 2);
+        wheels(1500);
+        window.setTimeout(() => blink(), 700);
+        return;
+      }
+      if (combo === 3) {
+        burstRings(host, 1);
+        if (lids.length > 0) blinkLids([lids[0]]);
+        return;
+      }
+      if (!host.classList.contains('is-wobble')) replay(host, 'is-bump', 460);
+    });
+  }
 
   const scheduleBlink = () => {
     const wait = BLINK_MIN + Math.random() * (BLINK_MAX - BLINK_MIN);
