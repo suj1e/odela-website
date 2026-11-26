@@ -244,6 +244,16 @@ export function initEyeMarks(): void {
         replay(host, 'is-wobble', 1100);
         burstRings(host, 3);
         wheels(1100);
+        const rect = host.getBoundingClientRect();
+        window.dispatchEvent(
+          new CustomEvent('odela:sword', {
+            detail: {
+              x: rect.right - rect.width * 0.1,
+              y: rect.top + rect.height * 0.46,
+              size: rect.width,
+            },
+          }),
+        );
         if (lids.length > 0) {
           const lastLid = lids[lids.length - 1];
           window.setTimeout(() => blinkLids([lastLid]), 320);

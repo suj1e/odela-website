@@ -18,10 +18,26 @@ type Speck = {
 
 type Ripple = { x: number; y: number; r: number; life: number };
 
+// A blade of light skimming the water: the tip leads, the tail fades, three
+// strands trail behind and the point leaves small rings where it grazes.
+type Blade = {
+  from: { x: number; y: number };
+  to: { x: number; y: number };
+  progress: number;
+  duration: number;
+  alpha: number;
+  length: number;
+  weight: number;
+  travelled: number;
+  rippleStep: number;
+  nextRipple: number;
+};
+
 type Palette = {
   speck: string;
   ripple: string;
   bubbleAlpha: number;
+  sword: string;
 };
 
 const TAU = Math.PI * 2;
@@ -33,11 +49,13 @@ function palette(): Palette {
         speck: '18,84,90',
         ripple: '24,96,104',
         bubbleAlpha: 0.6,
+        sword: '10,70,78',
       }
     : {
         speck: '206,238,243',
         ripple: '170,225,232',
         bubbleAlpha: 0.85,
+        sword: '223,250,255',
       };
 }
 
@@ -61,11 +79,13 @@ export function initOcean(): void {
 
   let specks: Speck[] = [];
   let ripples: Ripple[] = [];
+  let blades: Blade[] = [];
   let width = 0;
   let height = 0;
   let raf = 0;
   let time = 0;
   let last = 0;
+  let nextAmbient = 0;
 
   const makeSpeck = (): Speck => {
     const near = Math.random();
@@ -99,6 +119,126 @@ export function initOcean(): void {
     const target = Math.round(Math.min(110, Math.max(38, (width * height) / 18000)));
     while (specks.length > target) specks.pop();
     while (specks.length < target) specks.push(makeSpeck());
+  }
+
+  // Where the hero mark sits, there is no copy to cross: the blade skims the
+  // empty water beside it and only while the hero is on screen.
+  function maybeAmbientBlade(): void {
+    if (reduceQuery.matches || blades.length > 0) return;
+    const now = performance.now();
+    if (now < nextAmbient) return;
+    const mark = document.querySelector<HTMLElement>('.hero-mark');
+    if (!mark) return;
+    const rect = mark.getBoundingClientRect();
+    if (!rect.width || rect.bottom < 20 || rect.top > height - 40) return;
+
+    nextAmbient = now + 7000 + Math.random() * 6000;
+    const y0 = Math.min(height - 28, rect.bottom + 44 + Math.random() * 40);
+    blades.push({
+      from: { x: Math.max(0, rect.left - 150), y: y0 },
+      to: { x: width * 1.06, y: y0 - 24 - Math.random() * 22 },
+      progress: 0,
+      duration: 88,
+      alpha: 0.5,
+      length: 210,
+      weight: 1.6,
+      travelled: 0,
+      rippleStep: 170,
+      nextRipple: 120,
+    });
+  }
+
+  function drawBlades(dt: number): void {
+    const p = palette();
+    for (let i = blades.length - 1; i >= 0; i -= 1) {
+      const b = blades[i];
+      b.progress += dt / b.duration;
+      if (b.progress >= 1) {
+        blades.splice(i, 1);
+        continue;
+      }
+      const t = b.progress;
+      const dx = b.to.x - b.from.x;
+      const dy = b.to.y - b.from.y;
+      const span = Math.hypot(dx, dy) || 1;
+      const ux = dx / span;
+      const uy = dy / span;
+      const headX = b.from.x + dx * t;
+      const headY = b.from.y + dy * t;
+      const fade = t > 0.85 ? Math.max(0, (1 - t) / 0.15) : 1;
+      const env = Math.min(1, t * 5) * fade;
+      const len = b.length * Math.min(1, t * 3.2);
+      const tailX = headX - ux * len;
+      const tailY = headY - uy * len;
+      const px = -uy;
+      const py = ux;
+
+      // three strands trailing the blade, each fainter than the one before
+      for (let k = 0; k < 3; k += 1) {
+        const back = 30 + k * 46;
+        const sx = tailX - ux * back;
+        const sy = tailY - uy * back;
+        const wob = Math.sin(time * 1.9 + k * 1.7) * 4;
+        ctx.beginPath();
+        ctx.moveTo(sx + px * (k - 1) * 4, sy + py * (k - 1) * 4);
+        ctx.quadraticCurveTo(
+          (sx + tailX) / 2 + px * (wob + (k - 1) * 8),
+          (sy + tailY) / 2 + py * (wob + (k - 1) * 8),
+          tailX,
+          tailY,
+        );
+        ctx.strokeStyle = rgba(p.sword, (0.15 - k * 0.042) * b.alpha * env);
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      }
+
+      // the blade itself: a lens that swells behind the tip, dark at the tail
+      const grad = ctx.createLinearGradient(tailX, tailY, headX, headY);
+      grad.addColorStop(0, rgba(p.sword, 0));
+      grad.addColorStop(0.5, rgba(p.sword, 0.3 * b.alpha * env));
+      grad.addColorStop(0.9, rgba(p.sword, 0.95 * b.alpha * env));
+      grad.addColorStop(1, rgba(p.sword, 0.7 * b.alpha * env));
+
+      const w = b.weight * 1.7;
+      const midX = tailX + ux * len * 0.58;
+      const midY = tailY + uy * len * 0.58;
+
+      ctx.lineCap = 'round';
+      ctx.strokeStyle = rgba(p.sword, 0.1 * b.alpha * env);
+      ctx.lineWidth = b.weight * 4.5;
+      ctx.beginPath();
+      ctx.moveTo(tailX, tailY);
+      ctx.lineTo(headX, headY);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(tailX, tailY);
+      ctx.quadraticCurveTo(midX + px * w, midY + py * w, headX, headY);
+      ctx.quadraticCurveTo(midX - px * w, midY - py * w, tailX, tailY);
+      ctx.closePath();
+      ctx.fillStyle = grad;
+      ctx.fill();
+
+      // one white edge running along the last stretch of the blade
+      ctx.strokeStyle = rgba(p.sword, 0.9 * b.alpha * env);
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(midX, midY);
+      ctx.lineTo(headX, headY);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.arc(headX, headY, b.weight * 1.6, 0, TAU);
+      ctx.fillStyle = rgba(p.sword, 0.85 * b.alpha * env);
+      ctx.fill();
+
+      b.travelled += span * (dt / b.duration);
+      if (b.travelled > b.nextRipple) {
+        b.nextRipple += b.rippleStep;
+        ripples.push({ x: headX, y: headY + 6, r: 2, life: 0.5 });
+        if (ripples.length > 14) ripples.shift();
+      }
+    }
   }
 
   function drawSea(dt: number): void {
@@ -163,7 +303,9 @@ export function initOcean(): void {
       }
     }
 
-    // Click ripples fade as they widen.
+    drawBlades(dt);
+
+    // Click ripples and the rings a blade's point leaves behind.
     for (let i = ripples.length - 1; i >= 0; i -= 1) {
       const rp = ripples[i];
       rp.r += 90 * dt;
@@ -189,6 +331,7 @@ export function initOcean(): void {
     const dt = last ? Math.min(3, (now - last) / 16.6667) : 1;
     last = now;
     time += dt / 60;
+    maybeAmbientBlade();
     drawSea(dt);
     raf = requestAnimationFrame(frame);
   }
@@ -226,6 +369,27 @@ export function initOcean(): void {
     if (reduceQuery.matches) drawSea(0);
   }
 
+  // The mark's seventh poke hands the blade off: it leaves from behind the
+  // icon and cuts out past the right edge.
+  function onSword(event: Event): void {
+    if (reduceQuery.matches) return;
+    const detail = (event as CustomEvent<{ x: number; y: number; size: number }>).detail;
+    if (!detail) return;
+    nextAmbient = performance.now() + 6000;
+    blades.push({
+      from: { x: detail.x, y: Math.min(height - 24, detail.y) },
+      to: { x: width * 1.08, y: Math.min(height - 24, detail.y) - detail.size * 0.26 },
+      progress: 0,
+      duration: 72,
+      alpha: 0.9,
+      length: 300,
+      weight: 1.9,
+      travelled: 0,
+      rippleStep: 120,
+      nextRipple: 90,
+    });
+  }
+
   function onMotionChange(): void {
     if (reduceQuery.matches) {
       stop();
@@ -236,6 +400,7 @@ export function initOcean(): void {
   }
 
   window.addEventListener('resize', onResize);
+  window.addEventListener('odela:sword', onSword);
   window.addEventListener('pointermove', onPointerMove, { passive: true });
   window.addEventListener('pointerleave', onPointerLeave);
   window.addEventListener('pointerdown', onPointerDown, { passive: true });
@@ -244,6 +409,7 @@ export function initOcean(): void {
   reduceQuery.addEventListener('change', onMotionChange);
 
   resize();
+  nextAmbient = performance.now() + 1600;
   if (reduceQuery.matches) drawSea(0);
   else start();
 }
